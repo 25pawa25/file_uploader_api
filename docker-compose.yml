@@ -1,0 +1,120 @@
+version: "3.7"
+
+networks:
+  test_default:
+    external: true
+
+services:
+  file_uploader_postgres:
+    networks:
+      - test_default
+    container_name: file_uploader_postgres
+    build:
+      context: docker/postgres
+      dockerfile: Dockerfile
+      target: server
+    env_file:
+      - .env
+    volumes:
+      - ${DATA_PATH}/postgres:/var/lib/postgresql/data
+    ports:
+      - "15432:5432"
+    expose:
+      - 5432
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "sh -c 'pg_isready -U ${POSTGRES_USER} -d test_uploader_database'",
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    environment:
+      - LC_ALL=C.UTF-8
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=$(POSTGRES_DB)
+
+  file_uploader:
+    image: file_uploader-image
+    build:
+      context: .
+      dockerfile: docker/file_uploader/Dockerfile
+      target: server
+    networks:
+      - test_default
+    container_name: file_uploader
+    platform: ${PLATFORM}
+    env_file:
+      - src/.env
+    command: python main.py run_restapi
+    depends_on:
+      file_uploader_postgres:
+        condition: service_healthy
+      file_uploader_redis:
+        condition: service_healthy
+      celery_worker:
+        condition: service_started
+      celery_beat:
+        condition: service_started
+    ports:
+      - "8001:8000"
+
+
+  celery_worker:
+    build:
+      context: .
+      dockerfile: docker/file_uploader/Dockerfile
+      target: server
+    image: file_uploader-image
+    container_name: celery_worker
+    platform: ${PLATFORM}
+    command: celery -A celery_workers.app worker --loglevel=info
+    volumes:
+      - ${DATA_PATH}/logs_worker:${SERVICE_WORKDIR}/logs
+    env_file:
+      - src/.env
+    networks:
+      - test_default
+    depends_on:
+      file_uploader_postgres:
+        condition: service_healthy
+      file_uploader_redis:
+        condition: service_healthy
+
+  celery_beat:
+    image: file_uploader-image
+    container_name: celery_beat
+    command: celery -A celery_workers.app beat --loglevel=info -s /tmp/celerybeat-schedule
+    volumes:
+      - ${DATA_PATH}/logs_beat:/app/logs
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    networks:
+      - test_default
+    env_file:
+      - src/.env
+    depends_on:
+      file_uploader_postgres:
+        condition: service_started
+      file_uploader_redis:
+        condition: service_healthy
+      celery_worker:
+        condition: service_started
+
+  file_uploader_redis:
+    image: redis:6.2-alpine
+    container_name: file_uploader_redis
+    platform: ${PLATFORM}
+    restart: always
+    expose:
+      - 6379
+    networks:
+      - test_default
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20

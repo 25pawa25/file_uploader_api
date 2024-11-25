@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package tasks;
+
+option go_package = "./tasks";
+
+service TaskManager {
+  rpc CreateSchedulerTask(CreateSchedulerTaskRequest) returns (SchedulerTaskResponse) {}
+  rpc UpdateSchedulerTask(UpdateSchedulerTaskRequest) returns (SchedulerTaskResponse) {}
+  rpc DeleteSchedulerTask(DeleteSchedulerTaskRequest) returns (DeleteSchedulerTaskResponse) {}
+}
+
+
+// Common
+
+message SchedulerTaskResponse {
+  string id = 1;
+}
+
+// CreateSchedulerTask()
+
+message CreateSchedulerTaskRequest {
+  repeated string ipv4_addresses = 1;
+  string crontab = 2;
+}
+
+// UpdateSchedulerTask()
+
+message UpdateSchedulerTaskRequest {
+  string id = 1;
+  repeated string ipv4_addresses = 2;
+  string crontab = 3;
+}
+
+// DeleteSchedulerTask()
+
+message DeleteSchedulerTaskRequest {
+  string id = 1;
+}
+
+message DeleteSchedulerTaskResponse {
+}
