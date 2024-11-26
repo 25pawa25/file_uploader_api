@@ -1,20 +1,10 @@
-import base64
-import json
 import uuid
-from datetime import datetime, timedelta
 
-import jwt
 from fastapi import UploadFile
-from loguru import logger
-from pydantic import ValidationError
 
-from core.config import settings
-from repository.base.abc_file_repository import AbstractFileRepository
 from repository.interfaces.entity.abc_file_data_repository import AbstractFileDataRepository
 from repository.interfaces.file.abc_local_storage_repository import AbstractLocalStorageRepository
 from repository.interfaces.file.abc_s3_repository import AbstractS3Repository
-from repository.interfaces.kv.abc_session_repository import AbstractSessionRepository
-
 from schemas.request.file_data import FileDataSchema
 from schemas.response.file_data import FileDataResponse
 from services.file_data.abc_file_data import AbstractFileDataService

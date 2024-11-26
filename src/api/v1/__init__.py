@@ -1,5 +1,6 @@
-from api.v1.file import file_routers
 from fastapi import APIRouter
+
+from api.v1.file import file_routers
 
 v1_router = APIRouter(prefix="/v1")
 

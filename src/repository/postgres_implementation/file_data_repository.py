@@ -1,9 +1,7 @@
 import uuid
-from datetime import datetime
-from typing import Optional, Iterable
+from typing import Iterable
 
-from loguru import logger
-from sqlalchemy import desc, select, delete
+from sqlalchemy import select, delete
 
 from common.exceptions.file import FileNotExists
 from db.postgres.models.file_data import FileData
@@ -30,7 +28,7 @@ class SQLFileDataRepository(SQLRepository, AbstractFileDataRepository):
         Args:
             file_id: id of the file
         """
-        result = await self.session.execute(select(self.class_model).where(self.class_model.id==file_id))
+        result = await self.session.execute(select(self.class_model).where(self.class_model.id == file_id))
         instance = result.scalar_one_or_none()
         if instance:
             return self.to_entity(instance)
@@ -43,7 +41,7 @@ class SQLFileDataRepository(SQLRepository, AbstractFileDataRepository):
         Returns:
             list of file data to delete
         """
-        result = await self.session.execute(select(self.class_model).where(self.class_model.will_be_deleted==True))
+        result = await self.session.execute(select(self.class_model).where(self.class_model.will_be_deleted == True))
         return [self.to_entity(instance) for instance in result.scalars().all()]
 
     async def update_file_data(self, file_id: uuid.UUID, **fields) -> FileDataEntity:

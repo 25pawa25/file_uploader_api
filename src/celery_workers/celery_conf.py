@@ -1,6 +1,7 @@
 from celery import Celery
 from celery.schedules import crontab
 from celery.signals import setup_logging
+
 from core.config import settings
 
 app = Celery("celery_workers", broker=settings.redis.broker_url)

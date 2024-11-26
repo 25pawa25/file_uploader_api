@@ -1,11 +1,11 @@
 from asgiref.sync import async_to_sync
-from celery_workers.celery_conf import app
-from core.config import settings
 from loguru import logger
 from sqlalchemy import NullPool
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
+from celery_workers.celery_conf import app
+from core.config import settings
 from repository.local_storage_implementation.file_repository import FileRepository
 from repository.postgres_implementation.file_data_repository import SQLFileDataRepository
 

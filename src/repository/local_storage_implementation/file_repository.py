@@ -4,7 +4,6 @@ from typing import AsyncGenerator
 import aiofiles
 from fastapi import UploadFile
 
-from common.exceptions import FileNotExists
 from core.config import settings
 from repository.interfaces.file.abc_local_storage_repository import AbstractLocalStorageRepository
 
@@ -45,7 +44,6 @@ class FileRepository(AbstractLocalStorageRepository):
         async with aiofiles.open(file_path, mode="rb") as file:
             while chunk := await file.read(1024 * 1024):
                 yield chunk
-
 
     def delete_file(self, file_name: str):
         """
